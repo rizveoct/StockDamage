@@ -56,6 +56,11 @@
         updateTotal();
     }
 
+    function normaliseDecimal(value) {
+        const parsed = parseFloat(value);
+        return Number.isFinite(parsed) ? parsed : 0;
+    }
+
     function collectFormData() {
         const formData = Object.fromEntries(new FormData(form[0]).entries());
         const warehouseOption = $('#warehouseSelect option:selected');
@@ -63,17 +68,22 @@
         const itemOption = $('#itemSelect option:selected');
         const employeeOption = $('#employeeSelect option:selected');
 
+        formData.GodownNo = parseInt(formData.GodownNo, 10) || 0;
         formData.WarehouseName = warehouseOption.data('name') || '';
         formData.CurrencyRate = currencyOption.data('rate') || 0;
         formData.CurrencyName = currencyOption.val() || '';
         formData.SubItemName = itemOption.data('name') || '';
         formData.Unit = $('#itemUnit').val();
-        formData.Stock = $('#itemStock').val() || 0;
+        formData.Stock = normaliseDecimal($('#itemStock').val());
         formData.SubItemCode = $('#itemCode').val();
         formData.EmployeeName = employeeOption.data('name') || '';
-        formData.EmployeeId = employeeOption.val();
+        formData.EmployeeId = parseInt(employeeOption.val(), 10) || 0;
         formData.BatchNo = $('#batchNo').val();
         formData.DrAccountHead = $('#drAccountHead').val();
+        formData.CurrencyRate = normaliseDecimal(formData.CurrencyRate);
+        formData.Quantity = normaliseDecimal(formData.Quantity);
+        formData.Rate = normaliseDecimal(formData.Rate);
+        formData.AmountIn = normaliseDecimal(formData.AmountIn);
 
         return formData;
     }
