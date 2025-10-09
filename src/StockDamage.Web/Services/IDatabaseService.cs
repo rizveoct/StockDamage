@@ -10,5 +10,6 @@ public interface IDatabaseService
     Task<decimal?> GetStockForSubItemAsync(string subItemCode, CancellationToken cancellationToken);
     Task<IEnumerable<CurrencyInfo>> GetCurrenciesAsync(CancellationToken cancellationToken);
     Task<IEnumerable<Employee>> GetEmployeesAsync(CancellationToken cancellationToken);
+    Task<string> GenerateVoucherNumberAsync(CancellationToken cancellationToken);
     Task SaveStockDamageAsync(StockDamageSaveRequest request, CancellationToken cancellationToken);
 }

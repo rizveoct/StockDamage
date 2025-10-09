@@ -56,6 +56,15 @@ public class DatabaseService(IConfiguration configuration, ILogger<DatabaseServi
         return await connection.QueryAsync<Employee>(new CommandDefinition(sql, cancellationToken: cancellationToken));
     }
 
+    public async Task<string> GenerateVoucherNumberAsync(CancellationToken cancellationToken)
+    {
+        const string sql = "SELECT COUNT(*) FROM StockDamage WHERE EntryDate = CAST(GETDATE() AS DATE)";
+        await using var connection = CreateConnection();
+        var todayCount = await connection.ExecuteScalarAsync<int>(new CommandDefinition(sql, cancellationToken: cancellationToken));
+        var today = DateTime.Today;
+        return $"SD-{today:yyyyMMdd}-{(todayCount + 1):D4}";
+    }
+
     public async Task SaveStockDamageAsync(StockDamageSaveRequest request, CancellationToken cancellationToken)
     {
         const string storedProcedure = "SP_StockDamage_Save";

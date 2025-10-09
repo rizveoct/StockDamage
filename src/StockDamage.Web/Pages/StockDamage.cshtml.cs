@@ -20,6 +20,9 @@ public class StockDamageModel(IDatabaseService databaseService, ILogger<StockDam
 
     public async Task OnGetAsync(CancellationToken cancellationToken)
     {
+        Input.Date = DateTime.Today;
+        Input.VoucherNo = await _databaseService.GenerateVoucherNumberAsync(cancellationToken);
+        Input.DrAccountHead ??= "Stock Damage";
         await LoadStaticDataAsync(cancellationToken);
     }
 
@@ -53,6 +56,12 @@ public class StockDamageModel(IDatabaseService databaseService, ILogger<StockDam
         return new JsonResult(godowns);
     }
 
+    public async Task<IActionResult> OnGetVoucherAsync(CancellationToken cancellationToken)
+    {
+        var voucher = await _databaseService.GenerateVoucherNumberAsync(cancellationToken);
+        return new JsonResult(new { voucherNo = voucher });
+    }
+
     public async Task<IActionResult> OnPostAsync([FromBody] StockDamageSaveRequest request, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
@@ -68,8 +77,14 @@ public class StockDamageModel(IDatabaseService databaseService, ILogger<StockDam
 
         try
         {
+            if (string.IsNullOrWhiteSpace(request.VoucherNo))
+            {
+                request.VoucherNo = await _databaseService.GenerateVoucherNumberAsync(cancellationToken);
+            }
+
             await _databaseService.SaveStockDamageAsync(request, cancellationToken);
-            return new JsonResult(new { success = true });
+            var nextVoucherNo = await _databaseService.GenerateVoucherNumberAsync(cancellationToken);
+            return new JsonResult(new { success = true, nextVoucherNo });
         }
         catch (Exception ex)
         {
