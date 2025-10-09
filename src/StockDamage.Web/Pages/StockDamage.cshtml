@@ -19,7 +19,7 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Voucher No</label>
-                    <input type="text" class="form-control" name="VoucherNo" placeholder="Auto generated Voucher Number" />
+                    <input type="text" class="form-control" name="VoucherNo" placeholder="Auto generated Voucher Number" value="@Model.Input.VoucherNo" data-default="@Model.Input.VoucherNo" readonly />
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Warehouse Name</label>
@@ -71,7 +71,7 @@
             <div class="row g-3 mb-3">
                 <div class="col-md-3">
                     <label class="form-label">Batch No</label>
-                    <input type="text" class="form-control" name="BatchNo" id="batchNo" value="NA" readonly />
+                    <input type="text" class="form-control" name="BatchNo" id="batchNo" value="NA" data-default="NA" />
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Exchange Rate (in BDT)</label>
@@ -94,7 +94,7 @@
             <div class="row g-3 mb-3">
                 <div class="col-md-3">
                     <label class="form-label">Dr A/C Head</label>
-                    <input type="text" class="form-control" name="DrAccountHead" id="drAccountHead" value="Stock Damage" readonly />
+                    <input type="text" class="form-control" name="DrAccountHead" id="drAccountHead" value="@Model.Input.DrAccountHead" data-default="@Model.Input.DrAccountHead" />
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Employee Name</label>

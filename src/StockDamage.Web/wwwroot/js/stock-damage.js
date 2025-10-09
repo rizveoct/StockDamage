@@ -4,15 +4,38 @@
     const totalAmountLabel = $('#totalAmount');
     const addRowBtn = $('#addRowBtn');
     const saveBtn = $('#saveBtn');
+    const voucherInput = $('[name="VoucherNo"]');
+    const dateInput = $('[name="Date"]');
+    const batchInput = $('#batchNo');
+    const drAccountHeadInput = $('#drAccountHead');
 
     const state = {
         items: []
     };
 
+    function setVoucherNumber(value) {
+        const voucherValue = value || voucherInput.data('default') || '';
+        voucherInput.val(voucherValue);
+        voucherInput.attr('data-default', voucherValue);
+        if (voucherInput[0]) {
+            voucherInput[0].defaultValue = voucherValue;
+        }
+    }
+
     function resetForm() {
-        form.trigger('reset');
-        $('#batchNo').val('NA');
-        $('#drAccountHead').val('Stock Damage');
+        const currentVoucher = voucherInput.val();
+        const currentDate = dateInput.val();
+        const currentBatch = batchInput.val();
+        const currentDrAccount = drAccountHeadInput.val();
+
+        if (form[0]) {
+            form[0].reset();
+        }
+
+        setVoucherNumber(currentVoucher);
+        dateInput.val(currentDate || dateInput.data('default') || '');
+        batchInput.val(currentBatch || batchInput.data('default') || 'NA');
+        drAccountHeadInput.val(currentDrAccount || drAccountHeadInput.data('default') || 'Stock Damage');
         $('#itemCode, #itemUnit, #itemStock').val('');
         $('#exchangeRate').val('');
     }
@@ -56,6 +79,11 @@
         updateTotal();
     }
 
+    function normaliseDecimal(value) {
+        const parsed = parseFloat(value);
+        return Number.isFinite(parsed) ? parsed : 0;
+    }
+
     function collectFormData() {
         const formData = Object.fromEntries(new FormData(form[0]).entries());
         const warehouseOption = $('#warehouseSelect option:selected');
@@ -63,24 +91,29 @@
         const itemOption = $('#itemSelect option:selected');
         const employeeOption = $('#employeeSelect option:selected');
 
+        formData.GodownNo = parseInt(formData.GodownNo, 10) || 0;
         formData.WarehouseName = warehouseOption.data('name') || '';
         formData.CurrencyRate = currencyOption.data('rate') || 0;
         formData.CurrencyName = currencyOption.val() || '';
         formData.SubItemName = itemOption.data('name') || '';
         formData.Unit = $('#itemUnit').val();
-        formData.Stock = $('#itemStock').val() || 0;
+        formData.Stock = normaliseDecimal($('#itemStock').val());
         formData.SubItemCode = $('#itemCode').val();
         formData.EmployeeName = employeeOption.data('name') || '';
-        formData.EmployeeId = employeeOption.val();
-        formData.BatchNo = $('#batchNo').val();
-        formData.DrAccountHead = $('#drAccountHead').val();
+        formData.EmployeeId = parseInt(employeeOption.val(), 10) || 0;
+        formData.BatchNo = batchInput.val();
+        formData.DrAccountHead = drAccountHeadInput.val();
+        formData.CurrencyRate = normaliseDecimal(formData.CurrencyRate);
+        formData.Quantity = normaliseDecimal(formData.Quantity);
+        formData.Rate = normaliseDecimal(formData.Rate);
+        formData.AmountIn = normaliseDecimal(formData.AmountIn);
 
         return formData;
     }
 
     function populateForm(item) {
         $('[name="Date"]').val(item.Date.split('T')[0]);
-        $('[name="VoucherNo"]').val(item.VoucherNo);
+        setVoucherNumber(item.VoucherNo);
         $('#warehouseSelect').val(item.GodownNo);
         $('#currencySelect').val(item.CurrencyName);
         $('#itemSelect').val(item.SubItemCode);
@@ -175,6 +208,19 @@
         }
     });
 
+    function refreshVoucherNumber() {
+        fetch('?handler=Voucher')
+            .then(response => (response.ok ? response.json() : Promise.reject()))
+            .then(data => {
+                if (data && data.voucherNo) {
+                    setVoucherNumber(data.voucherNo);
+                }
+            })
+            .catch(() => {
+                console.warn('Unable to refresh voucher number');
+            });
+    }
+
     saveBtn.on('click', function () {
         if (!state.items.length) {
             alert('Please add at least one item before saving.');
@@ -182,9 +228,9 @@
         }
 
         const payload = {
-            Date: $('[name="Date"]').val(),
-            VoucherNo: $('[name="VoucherNo"]').val(),
-            DrAccountHead: $('#drAccountHead').val(),
+            Date: dateInput.val(),
+            VoucherNo: voucherInput.val(),
+            DrAccountHead: drAccountHeadInput.val(),
             Items: state.items
         };
 
@@ -197,14 +243,20 @@
             body: JSON.stringify(payload)
         })
             .then(response => response.ok ? response.json() : Promise.reject('Save failed'))
-            .then(() => {
+            .then((result) => {
                 alert('Stock damage saved successfully.');
                 state.items = [];
                 renderTable();
                 resetForm();
+                if (result && result.nextVoucherNo) {
+                    setVoucherNumber(result.nextVoucherNo);
+                } else {
+                    refreshVoucherNumber();
+                }
             })
             .catch(() => alert('Unable to save stock damage entries. Please try again.'));
     });
 
+    setVoucherNumber(voucherInput.val());
     renderTable();
 })(jQuery);
