@@ -101,8 +101,8 @@
         formData.SubItemCode = $('#itemCode').val();
         formData.EmployeeName = employeeOption.data('name') || '';
         formData.EmployeeId = parseInt(employeeOption.val(), 10) || 0;
-        formData.BatchNo = batchInput.val();
-        formData.DrAccountHead = drAccountHeadInput.val();
+        formData.BatchNo = $('#batchNo').val();
+        formData.DrAccountHead = $('#drAccountHead').val();
         formData.CurrencyRate = normaliseDecimal(formData.CurrencyRate);
         formData.Quantity = normaliseDecimal(formData.Quantity);
         formData.Rate = normaliseDecimal(formData.Rate);
